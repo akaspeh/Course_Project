@@ -101,8 +101,9 @@ void Server::acceptConnections() {
             std::cerr << "Accept failed.\n";
             continue;
         }
-
-
+        m_thread_pool.add_task(
+                std::bind(&Server::handleRequest, this, clientSocket)
+                );
         std::thread(&Server:: handleRequest, this, clientSocket).detach();
         std::cout << "Accepted Client: " << clientSocket << "\n";
     }

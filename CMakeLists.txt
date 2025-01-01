@@ -18,7 +18,8 @@ set(SOURCE_FILES
 
 # Опции компиляции и линковки
 add_compile_definitions(TRACY_ENABLE)
-set(CMAKE_EXE_LINKER_FLAGS "-static")
+# set(CMAKE_EXE_LINKER_FLAGS "-static")
+
 
 # Добавление исполняемого файла
 add_executable(Course_project ${SOURCE_FILES})

@@ -14,6 +14,7 @@
 #include <functional>
 #include <string>
 
+#include "data_structure/ThreadPool.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -22,9 +23,10 @@ private:
     WSADATA m_wsaData;
     SOCKET m_serverSocket;
     SOCKADDR_IN m_serverAddr;
+    ThreadPool m_thread_pool;
     int m_port;
 public:
-    Server(int port) : m_port(port) {}
+    Server(int port) : m_port(port){m_thread_pool.initialize(std::thread::hardware_concurrency());}
     bool initialize();
     std::string readHtmlFile(const std::string& filePath);
     void sendResponse(SOCKET clientSocket, const std::string& response);
