@@ -91,6 +91,8 @@ void Server::handleRequest(SOCKET clientSocket) {
             }
         }
     }
+    std::cout << "Client disconnected: " << clientSocket << "\n";
+    closesocket(clientSocket); // Close the client socket
 }
 
 void Server::acceptConnections() {
@@ -102,7 +104,7 @@ void Server::acceptConnections() {
             continue;
         }
         m_thread_pool.add_task(
-                std::bind(&Server::handleRequest, this, clientSocket)
+                1, std::bind(&Server::handleRequest, this, clientSocket)
                 );
         std::thread(&Server:: handleRequest, this, clientSocket).detach();
         std::cout << "Accepted Client: " << clientSocket << "\n";
