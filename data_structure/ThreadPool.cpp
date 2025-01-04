@@ -33,7 +33,7 @@ void ThreadPool::initialize(const size_t worker_count, const float ratio_for_req
 void ThreadPool::routine(){
     ZoneScoped;
     while (true){
-        int16_t queue_choice_flag = 0; // 0 - start, 1 - inverted index, 2 - request task
+        int8_t queue_choice_flag = 0; // 0 - start, 1 - inverted index, 2 - request task
         bool task_accquiered = false;
         std::function<void()> task;
         {

@@ -14,7 +14,7 @@ set(SOURCE_FILES
         data_structure/ThreadPool.cpp
         data_structure/ThreadPool.h
         data_structure/TaskQueue.h
-        )
+        data_structure/ThreadSafeHashMap.h)
 
 # Опции компиляции и линковки
 add_compile_definitions(TRACY_ENABLE)
