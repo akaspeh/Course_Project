@@ -44,7 +44,7 @@ int main() {
 
     // Multithreaded operations: insert, get, and pop
     for (int i = 0; i < NUM_THREADS; ++i) {
-        threads.push_back(std::thread([&map, &distribution, &generator, &success_count, &fail_count, &sync_point] {
+        threads.emplace_back(std::thread([&map, &distribution, &generator, &success_count, &fail_count, &sync_point] {
             // Wait for all threads to reach this point
             sync_point.arrive_and_wait();
 
@@ -52,7 +52,8 @@ int main() {
                 int key = distribution(generator);
                 map.emplace(key, "Value " + std::to_string(key));
                 if(!map.pop(key)){
-                };
+                    std::cout << "false:" << key << "\n";
+                }
             }
         }));
     }

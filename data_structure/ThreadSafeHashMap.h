@@ -39,26 +39,26 @@ public:
     size_t size() const;
 private:
     void resize();
-    inline size_t hash(key_t key){ return ((m_a * key + m_b) % 9149658775000477) % m_hashBuckets.size(); };
+    inline size_t hash(key_t key){ return ((m_a * key + m_b) % 9149658775000477); };
 public:
     ThreadSafeHashMap(const ThreadSafeHashMap& other) = delete;
     ThreadSafeHashMap(ThreadSafeHashMap&& other) = delete;
     ThreadSafeHashMap& operator=(const ThreadSafeHashMap& rhs) = delete;
     ThreadSafeHashMap& operator=(ThreadSafeHashMap&& rhs) = delete;
+    std::vector<std::list<std::pair<key_t, value_t>>> m_hashBuckets;
 private:
     std::vector<std::shared_mutex> m_locks;
-    std::vector<std::list<std::pair<key_t, value_t>>> m_hashBuckets;
     int16_t m_a, m_b;
     std::atomic<size_t> m_size = 0;
     std::atomic<size_t> m_process = 0;
-    std::mutex m_globalLock;
+    mutable read_write_lock m_rw_lock;
     float m_loadfactor_threshold = 2.0;
 };
 
 template <typename key_t, typename value_t>
 void ThreadSafeHashMap<key_t, value_t>::resize(){
+
     ZoneScoped;
-    while(m_process > 0){}
     size_t new_bucket_count = m_hashBuckets.size() * 2;
     std::vector<std::list<std::pair<key_t, value_t>>> new_buckets(new_bucket_count);
 
@@ -89,7 +89,7 @@ template <typename key_t, typename value_t>
 void ThreadSafeHashMap<key_t, value_t>::clear(){
     ZoneScoped;
     {
-        std::lock_guard<std::mutex> globalLock(m_globalLock);
+        write_lock _(m_rw_lock);
     }
 
     m_hashBuckets.clear();
@@ -104,10 +104,10 @@ template <typename key_t, typename value_t>
 bool ThreadSafeHashMap<key_t, value_t>::pop(const key_t& key){
     ZoneScoped;
     {
-        std::lock_guard<std::mutex> globalLock(m_globalLock);
+        write_lock _(m_rw_lock);
         m_process++;
     }
-    key_t hashed_key = hash(key);
+    key_t hashed_key = hash(key) % m_hashBuckets.size();
     std::unique_lock<std::shared_mutex> lock(m_locks[hashed_key % m_locks.size()]);
     if (empty()) {
         m_process--;
@@ -125,6 +125,7 @@ bool ThreadSafeHashMap<key_t, value_t>::pop(const key_t& key){
         if (it != bucket.end()) {
             // Erase the item from the list if found
             bucket.erase(it);
+            m_size--;
             m_process--;
             return true;  // Successfully removed
         }
@@ -137,10 +138,10 @@ template <typename key_t, typename value_t>
 std::shared_ptr<value_t> ThreadSafeHashMap<key_t, value_t>::get(const key_t& key){
     ZoneScoped;
     {
-        std::lock_guard<std::mutex> globalLock(m_globalLock);
+        read_lock _(m_rw_lock);
         m_process++;
     }
-    size_t hashed_key = hash(key);
+    size_t hashed_key = hash(key) % m_hashBuckets.size();;
     std::shared_lock<std::shared_mutex> lock(m_locks[hashed_key % m_locks.size()]);
     // Lock the mutex corresponding to the bucket
     const auto& bucket = m_hashBuckets[hashed_key];
@@ -165,15 +166,14 @@ template <typename... arguments>
 void ThreadSafeHashMap<key_t, value_t>::emplace(const key_t &key, arguments&&... parameters){
     ZoneScoped;
     {
-        std::lock_guard<std::mutex> globalLock(m_globalLock);
+        write_lock _(m_rw_lock);
         if (m_size / static_cast<double>(m_hashBuckets.size()) >= m_loadfactor_threshold) {
-            std::cout << "before loadfactor" << m_size / static_cast<double>(m_hashBuckets.size()) << "\n";
+            while(m_process > 0){}
             resize();
-            std::cout << "after loadfactor" << m_size / static_cast<double>(m_hashBuckets.size()) << "\n";
         }
         m_process++;
     }
-    size_t hashed_key = hash(key);
+    size_t hashed_key = hash(key) % m_hashBuckets.size();;
     std::unique_lock<std::shared_mutex> lock(m_locks[hashed_key % m_locks.size()]);
     // Lock the corresponding mutex for the selected bucket to ensure thread safety
     // Access the bucket list corresponding to the calculated index
