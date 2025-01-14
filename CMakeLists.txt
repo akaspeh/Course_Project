@@ -25,6 +25,6 @@ add_compile_definitions(TRACY_ENABLE)
 add_executable(Course_project ${SOURCE_FILES})
 
 # Линковка библиотек
-target_link_libraries(Course_project PRIVATE ws2_32 dbghelp)
+target_link_libraries(Course_project PRIVATE ws2_32 dbghelp stdc++fs)
 
 

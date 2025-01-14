@@ -27,8 +27,6 @@ private:
     uint16_t m_port;
 public:
     inline Server(uint16_t port) : m_port(port){m_thread_pool.initialize(std::thread::hardware_concurrency());}
-    inline Server(uint16_t port, float ratio_for_request_tasks_part) : m_port(port)
-    {m_thread_pool.initialize(std::thread::hardware_concurrency(),ratio_for_request_tasks_part);}
     bool initialize();
     std::string readHtmlFile(const std::string& filePath);
     void sendResponse(SOCKET clientSocket, const std::string& response);
