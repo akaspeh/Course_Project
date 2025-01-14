@@ -14,7 +14,7 @@ public:
     inline ThreadPool() = default;
     inline ~ThreadPool() { terminate(); }
 public:
-    void initialize(const size_t worker_count, const float ratio_for_request_tasks_part = 0.5f);
+    void initialize(size_t worker_count, float ratio_for_request_tasks_part = 0.5f);
     void terminate();
     void routine();
     bool working() const;
@@ -55,14 +55,10 @@ void ThreadPool::add_task(int16_t priority, task_t&& task, arguments&&... parame
                           std::forward<arguments>(parameters)...);
 
     if(priority == 1){
-        auto bind = std::bind(std::forward<task_t>(task),
-                              std::forward<arguments>(parameters)...);
         m_request_task_counter++;
         m_request_tasks.emplace(bind);
     }
     else if(priority == 0){
-        auto bind = std::bind(std::forward<task_t>(task),
-                              std::forward<arguments>(parameters)...);
         m_inverted_index_task_counter++;
         m_inverted_index_tasks.emplace(bind);
     }

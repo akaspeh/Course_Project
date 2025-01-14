@@ -14,7 +14,7 @@ set(SOURCE_FILES
         data_structure/ThreadPool.cpp
         data_structure/ThreadPool.h
         data_structure/TaskQueue.h
-        data_structure/ThreadSafeHashMap.h)
+        data_structure/ThreadSafeHashMap.h data_structure/InvertedIndex.cpp data_structure/InvertedIndex.h FileStorageManager.cpp FileStorageManager.h utils/Request.h utils/Response.h utils/RequestType.h)
 
 # Опции компиляции и линковки
 add_compile_definitions(TRACY_ENABLE)
