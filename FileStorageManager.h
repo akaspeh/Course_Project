@@ -1,0 +1,14 @@
+//
+// Created by PC on 13.01.2025.
+//
+
+#ifndef COURSE_PROJECT_FILESTORAGEMANAGER_H
+#define COURSE_PROJECT_FILESTORAGEMANAGER_H
+
+
+class FileStorageManager {
+
+};
+
+
+#endif //COURSE_PROJECT_FILESTORAGEMANAGER_H
