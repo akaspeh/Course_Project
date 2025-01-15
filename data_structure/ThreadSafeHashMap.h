@@ -191,8 +191,16 @@ void ThreadSafeHashMap<key_t, value_t>::emplace(const key_t &key, arguments&&...
     // Access the bucket list corresponding to the calculated index
     auto& bucket = m_hashBuckets[hashed_key];
     // Use emplace to insert the new value into the bucket (key-value pair)
-    bucket.emplace_back(key, value_t(std::forward<arguments>(parameters)...));
-    ++m_size;
+    auto it = std::find_if(bucket.begin(), bucket.end(),
+                           [&key](const std::pair<key_t, value_t>& element) {
+                               return element.first == key;
+                           });
+    if (it == bucket.end()) {
+        // Key exists: update the value (or handle as needed)
+        bucket.emplace_back(key, value_t(std::forward<arguments>(parameters)...));
+        ++m_size;
+    }
+
     m_process--;
 }
 
