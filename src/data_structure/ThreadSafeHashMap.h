@@ -5,7 +5,7 @@
 #ifndef COURSE_PROJECT_THREADSAFEHASHMAP_H
 #define COURSE_PROJECT_THREADSAFEHASHMAP_H
 
-#include "../tracy/Tracy.hpp"
+#include "../../tracy/Tracy.hpp"
 #include <cassert>
 #include <thread>
 #include <memory>

@@ -10,7 +10,7 @@
 #include <thread>
 #include <shared_mutex>
 #include <mutex>
-#include "../tracy/Tracy.hpp"
+#include "../../tracy/Tracy.hpp"
 
 using read_write_lock = std::shared_mutex;
 using read_lock = std::shared_lock<read_write_lock>;

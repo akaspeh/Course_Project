@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Server.h"
-#include "data_structure/InvertedIndex.h"
-#include "data_structure/ThreadSafeHashMap.h"
+#include "../src/data_structure/InvertedIndex.h"
+#include "../src/data_structure/ThreadSafeHashMap.h"
 
 #include <iostream>
 #include <thread>
