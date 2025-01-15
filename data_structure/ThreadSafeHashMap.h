@@ -39,7 +39,7 @@ public:
     size_t size() const;
 private:
     void resize();
-    inline size_t hash(key_t key){ return ((m_a * key + m_b) % 9149658775000477); };
+    size_t hash(const key_t& key);
 public:
     ThreadSafeHashMap(const ThreadSafeHashMap& other) = delete;
     ThreadSafeHashMap(ThreadSafeHashMap&& other) = delete;
@@ -53,6 +53,18 @@ private:
     std::atomic<size_t> m_process = 0;
     mutable read_write_lock m_rw_lock;
     float m_loadfactor_threshold = 2.0;
+};
+template <typename key_t, typename value_t>
+size_t ThreadSafeHashMap<key_t, value_t>::hash(const key_t& key){
+    if constexpr (std::is_same<key_t, std::string>::value) {
+        size_t hash = 0;
+        for (char c : key) {
+            hash = hash * 31 + c;  // A common string hashing method
+        }
+        return hash % 9149658775000477;
+    } else {
+        return ((m_a * key + m_b) % 9149658775000477);
+    }
 };
 
 template <typename key_t, typename value_t>
