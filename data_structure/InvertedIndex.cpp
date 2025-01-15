@@ -41,6 +41,23 @@ void InvertedIndex::add_document(const std::string& file_name, const std::string
 
 }
 
+void InvertedIndex::remove_document(const std::string& file_name, const std::string& content) {
+    std::vector<std::string> tokens = tokenize(content);
+    for (const std::string& token : tokens) {
+        auto file_list = m_hash_map.get(token); // Get the set associated with the token
+        if (file_list != nullptr) {
+            // Remove the file name from the set
+            file_list->erase(file_name);
+
+            // If the set becomes empty, remove the token from the map
+            if (file_list->empty()) {
+                m_hash_map.pop(token); // Use pop or equivalent to erase the token from the map
+            } else {
+                m_hash_map.emplace(token, *file_list); // Update the set in the hash map
+            }
+        }
+    }
+}
 
 std::set<std::string> InvertedIndex::search(const std::string& term){
     auto result = m_hash_map.get(normalize(term));

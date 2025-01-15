@@ -33,21 +33,6 @@ int main() {
 //        std::cerr << "Server initialization failed.\n";
 //    }
 //    return 0;
-    InvertedIndex index;
-
-    // Add documents to the index
-    index.add_document("doc1.txt", "The quick brown fox jumps over the lazy dog");
-    index.add_document("doc2.txt", "The quick fox jumped over the fence");
-    index.add_document("doc3.txt", "Lazy dogs are quick and brown");
-
-    // Test the search functionality
-    std::set<std::string> results = index.search("fence");
-    std::set<std::string> results2 = index.search("lazy");
-    std::set<std::string> results3 = index.search("dogs");
-
-    print_results("fence", results);
-    print_results("lazy", results2);
-    print_results("dogs", results3);
 
     return 0;
 }

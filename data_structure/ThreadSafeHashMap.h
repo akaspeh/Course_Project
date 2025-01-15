@@ -54,6 +54,7 @@ private:
     mutable read_write_lock m_rw_lock;
     float m_loadfactor_threshold = 2.0;
 };
+
 template <typename key_t, typename value_t>
 size_t ThreadSafeHashMap<key_t, value_t>::hash(const key_t& key){
     if constexpr (std::is_same<key_t, std::string>::value) {
@@ -65,7 +66,7 @@ size_t ThreadSafeHashMap<key_t, value_t>::hash(const key_t& key){
     } else {
         return ((m_a * key + m_b) % 9149658775000477);
     }
-};
+}
 
 template <typename key_t, typename value_t>
 void ThreadSafeHashMap<key_t, value_t>::resize(){
@@ -119,7 +120,7 @@ bool ThreadSafeHashMap<key_t, value_t>::pop(const key_t& key){
         write_lock _(m_rw_lock);
         m_process++;
     }
-    key_t hashed_key = hash(key) % m_hashBuckets.size();
+    size_t hashed_key = hash(key) % m_hashBuckets.size();
     std::unique_lock<std::shared_mutex> lock(m_locks[hashed_key % m_locks.size()]);
     if (empty()) {
         m_process--;
@@ -130,7 +131,7 @@ bool ThreadSafeHashMap<key_t, value_t>::pop(const key_t& key){
         auto it = std::find_if(
                 bucket.begin(),
                 bucket.end(),
-                [&key](const std::pair<int, std::string>& pair) {
+                [&key](const std::pair<key_t, value_t>& pair) {
                     return pair.first == key;
                 }
         );
@@ -153,7 +154,7 @@ std::shared_ptr<value_t> ThreadSafeHashMap<key_t, value_t>::get(const key_t& key
         read_lock _(m_rw_lock);
         m_process++;
     }
-    size_t hashed_key = hash(key) % m_hashBuckets.size();;
+    size_t hashed_key = hash(key) % m_hashBuckets.size();
     std::shared_lock<std::shared_mutex> lock(m_locks[hashed_key % m_locks.size()]);
     // Lock the mutex corresponding to the bucket
     const auto& bucket = m_hashBuckets[hashed_key];
@@ -185,7 +186,7 @@ void ThreadSafeHashMap<key_t, value_t>::emplace(const key_t &key, arguments&&...
         }
         m_process++;
     }
-    size_t hashed_key = hash(key) % m_hashBuckets.size();;
+    size_t hashed_key = hash(key) % m_hashBuckets.size();
     std::unique_lock<std::shared_mutex> lock(m_locks[hashed_key % m_locks.size()]);
     // Lock the corresponding mutex for the selected bucket to ensure thread safety
     // Access the bucket list corresponding to the calculated index

@@ -18,6 +18,7 @@ public:
     ThreadSafeHashMap<std::string, std::set<std::string>> m_hash_map;
     void add_document(const std::string& file_name, const std::string& content);
     std::set<std::string> search(const std::string& term);
+    void remove_document(const std::string& file_name, const std::string& content);
 };
 
 
