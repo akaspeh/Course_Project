@@ -195,12 +195,14 @@ void ThreadSafeHashMap<key_t, value_t>::emplace(const key_t &key, arguments&&...
                            [&key](const std::pair<key_t, value_t>& element) {
                                return element.first == key;
                            });
-    if (it == bucket.end()) {
+    if (it != bucket.end()) {
         // Key exists: update the value (or handle as needed)
+        it->second = value_t(std::forward<arguments>(parameters)...);
+    } else {
+        // Key doesn't exist: insert a new pair
         bucket.emplace_back(key, value_t(std::forward<arguments>(parameters)...));
         ++m_size;
     }
-
     m_process--;
 }
 

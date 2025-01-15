@@ -23,14 +23,31 @@ std::string InvertedIndex::normalize(const std::string& word){
     }
     return result;
 }
-void InvertedIndex::add_document(const std::string& file_name, const std::string& content){
+void InvertedIndex::add_document(const std::string& file_name, const std::string& content) {
     std::vector<std::string> tokens = tokenize(content);
     for (const std::string& token : tokens) {
-        m_hash_map.emplace(token, file_name);
+        auto file_list = m_hash_map.get(token); // Получаем ссылку на список файлов
+        if (file_list == nullptr) {
+            // If no set exists for this token, create a new set
+            auto new_set = std::set<std::string>();
+            new_set.insert(file_name); // Add the file name to the set
+            m_hash_map.emplace(token, new_set);
+        } else {
+            // If the set exists, add the file name to it
+            file_list->insert(file_name);
+            m_hash_map.emplace(token, *file_list);
+        }
     }
+
 }
-std::vector<int> InvertedIndex::search(const std::string& term){
-    std::string normalized_term = normalize(term);
-    m_hash_map.get(term);
+
+
+std::set<std::string> InvertedIndex::search(const std::string& term){
+    auto result = m_hash_map.get(normalize(term));
+    if (result != nullptr) {
+        // Dereference the shared_ptr to get the actual set
+        return *result;
+    }
+    // Return an empty set if the term is not found
     return {};
 }
