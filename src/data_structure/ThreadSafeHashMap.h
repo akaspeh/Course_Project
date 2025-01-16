@@ -106,8 +106,7 @@ void ThreadSafeHashMap<key_t, value_t>::clear(){
     }
 
     m_hashBuckets.clear();
-    std::vector<std::list<std::pair<key_t, value_t>>> newBuckets(4);
-
+    std::vector<std::list<std::pair<key_t, value_t>>> newBuckets(m_locks.size());
     // Swap the new vector with the current one.
     m_hashBuckets.swap(newBuckets);
     m_size.store(0);

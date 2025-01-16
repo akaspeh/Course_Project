@@ -1,7 +1,5 @@
-#include <iostream>
+
 #include "Server.h"
-#include "../src/data_structure/InvertedIndex.h"
-#include "../src/data_structure/ThreadSafeHashMap.h"
 
 #include <iostream>
 #include <thread>
@@ -25,14 +23,13 @@ void print_results(const std::string& term, const std::set<std::string>& results
 }
 
 int main() {
-//    Server server(8080);
-//    if (server.initialize()) {
-//        std::cout << "Server initialized.\n";
-//        server.acceptConnections();
-//    } else {
-//        std::cerr << "Server initialization failed.\n";
-//    }
-//    return 0;
-
+    Server server(18080, "storage/");
+    server.add_files_from_directory("Files/");
+    if (server.initialize()) {
+        std::cout << "Server initialized.\n";
+        server.accept_connections();
+    } else {
+        std::cerr << "Server initialization failed.\n";
+    }
     return 0;
 }

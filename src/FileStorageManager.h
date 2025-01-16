@@ -16,7 +16,8 @@ private:
     std::string m_file_storage_path;
     std::shared_mutex m_rw_lock;
 public:
-    FileStorageManager(const std::string& path);
+    FileStorageManager() = default;
+    bool init_path(const std::string& filepath);
     bool save_file(const std::string& filename, const std::string& content);
     std::string get_content(const std::string& filename);
     std::vector<std::string> get_all_files();

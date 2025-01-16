@@ -12,9 +12,15 @@
 #include <fstream>
 #include <sstream>
 #include <functional>
+#include <fstream>
 #include <string>
+#include <filesystem>
 
 #include "../src/data_structure/ThreadPool.h"
+#include "../src/data_structure/InvertedIndex.h"
+#include "../src/FileStorageManager.h"
+#include "../src/utils/Response.h"
+#include "../src/utils/Request.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -23,18 +29,22 @@ private:
     WSADATA m_wsaData;
     SOCKET m_serverSocket;
     SOCKADDR_IN m_serverAddr;
+    uint32_t m_port;
+
+    FileStorageManager m_file_storage_manager;
+    InvertedIndex m_inverted_index;
     ThreadPool m_thread_pool;
-    uint16_t m_port;
+
 public:
-    inline Server(uint16_t port) : m_port(port){m_thread_pool.initialize(std::thread::hardware_concurrency());}
-    bool initialize();
-    std::string readHtmlFile(const std::string& filePath);
-    void sendResponse(SOCKET clientSocket, const std::string& response);
-    std::string getContentType(const std::string& path);
-    bool endsWith(const std::string& str, const std::string& suffix);
-    void handleRequest(SOCKET clientSocket);
-    void acceptConnections();
+    Server(uint32_t port, const std::string& file_path, size_t threads_count = std::thread::hardware_concurrency()-1);
     ~Server();
+    bool initialize();
+    void handle_request(SOCKET client_socket);
+    void accept_connections();
+    Response handle_file_upload(const Request& request);
+    Response handle_delete_file_request(const Request& request);
+    Response handle_search_request(const Request& request);
+    void add_files_from_directory(const std::string& directory_path);
 };
 
 

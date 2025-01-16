@@ -9,8 +9,10 @@
 #include <shared_mutex>
 #include <mutex>
 
-FileStorageManager::FileStorageManager(const std::string& path) : m_file_storage_path(path) {
-    std::experimental::filesystem::create_directory(m_file_storage_path);
+
+bool FileStorageManager::init_path(const std::string &filepath) {
+    m_file_storage_path = filepath;
+    return std::experimental::filesystem::create_directory(m_file_storage_path);
 }
 
 bool FileStorageManager::save_file(const std::string& filename, const std::string& content) {

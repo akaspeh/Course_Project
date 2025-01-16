@@ -21,7 +21,7 @@ public:
     bool working_unsafe() const;
 public:
     template <typename task_t, typename... arguments>
-    void add_task(int16_t priority, task_t&& task, arguments&&... parameters);
+    void add_task(task_t&& task, arguments&&... parameters);
 public:
     ThreadPool(const ThreadPool& other) = delete;
     ThreadPool(ThreadPool&& other) = delete;
@@ -37,7 +37,7 @@ private:
 };
 
 template <typename task_t, typename... arguments>
-void ThreadPool::add_task(int16_t priority, task_t&& task, arguments&&... parameters){
+void ThreadPool::add_task(task_t&& task, arguments&&... parameters){
     ZoneScopedN( "add_task" );
     {
         read_lock _(m_rw_lock);

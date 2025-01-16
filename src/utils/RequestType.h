@@ -8,10 +8,11 @@
 #include <string>
 #include <cstdint>
 
+
 enum class RequestType : std::uint8_t {
-    UPLOAD,
-    SEARCH,
-    DELETE
+    FUPLOAD = 0,
+    FSEARCH = 1,
+    FDELETE = 2
 };
 
 #endif //COURSE_PROJECT_REQUESTTYPE_H
