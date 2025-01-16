@@ -45,6 +45,7 @@ public:
     Response handle_delete_file_request(const Request& request);
     Response handle_search_request(const Request& request);
     void add_files_from_directory(const std::string& directory_path);
+    void clear_files_from_directory(const std::string& directory_path);
 };
 
 

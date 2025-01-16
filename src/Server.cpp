@@ -51,24 +51,27 @@ void Server::handle_request(SOCKET client_socket) {
         }
 
         Request request{static_cast<RequestType>(request_type_int), request_data};
-        std::cout << "INFO: Received request of type " << static_cast<int>(request.type);
+        std::cout << "INFO: Received request of type " << static_cast<int>(request.type) << std::endl;
 
         Response response;
-//        switch (request.type) {
-//            case RequestType::FUPLOAD:
-//                response = handle_file_upload(request);
-//                break;
-//            case RequestType::FSEARCH:
-//                response = handle_search_request(request);
-//                break;
-//            case RequestType::FDELETE:
-//                response = handle_delete_file_request(request);
-//                break;
-//            default:
-//                response = {400, "Unknown request type."};
-//                std::cout << "WARNING: Received unknown request type: " << static_cast<int>(request.type) << std::endl;
-//                break;
-//        }
+        switch (request.type) {
+            case RequestType::FUPLOAD:
+                response = handle_file_upload(request);
+                std::cout << "FUPLOAD" << std::endl;
+                break;
+            case RequestType::FSEARCH:
+                response = handle_search_request(request);
+                std::cout << "FSEARCH" << std::endl;
+                break;
+            case RequestType::FDELETE:
+                response = handle_delete_file_request(request);
+                std::cout << "FDELETE" << std::endl;
+                break;
+            default:
+                response = {400, "Unknown request type."};
+                std::cout << "WARNING: Received unknown request type: " << static_cast<int>(request.type) << std::endl;
+                break;
+        }
         std::string response_str = std::to_string(response.status_code) + "\n" + response.data;
         send(client_socket, response_str.c_str(), response_str.length(), 0);
         std::cout << "INFO: Sent response to client." << std::endl;
@@ -77,7 +80,7 @@ void Server::handle_request(SOCKET client_socket) {
     } else {
         perror("recv failed");
     }
-    std::cout << "Client disconnected: " << client_socket << "\n";
+    std::cout << "Client disconnected: " << client_socket << std::endl;
     closesocket(client_socket); // Close the client socket
 }
 
@@ -91,18 +94,12 @@ void Server::accept_connections() {
             std::cerr << "Accept failed with error: " << WSAGetLastError() << "\n";
             continue;  // Try to accept the next connection
         }
-
         // Log when a client is successfully accepted
         std::cout << "Accepted Client: " << clientSocket << "\n";
-
         // Handle the client request in a new thread
         m_thread_pool.add_task(std::bind(&Server::handle_request, this, clientSocket));
     }
 }
-
-
-
-
 
 Response Server::handle_file_upload(const Request &request) {
     try {
@@ -131,12 +128,11 @@ Response Server::handle_delete_file_request(const Request& request){
     try {
         // The request data contains the file name to delete
         std::string file_name = request.data;
-
         // Delete the file using FileStorageManager
+        std::string content = m_file_storage_manager.get_content(file_name);
         if (m_file_storage_manager.delete_file(file_name)) {
             // Optionally, remove the file from the inverted index
             // Assuming the inverted index has a method for removing a document
-            std::string content = m_file_storage_manager.get_content(file_name);
             m_inverted_index.remove_document(file_name, content); // Ensure this method is implemented
             return {200, "File deleted successfully."};
         } else {
@@ -150,7 +146,6 @@ Response Server::handle_search_request(const Request& request){
     try {
         // The request data contains the search term
         std::string search_term = request.data;
-
         // Search the term in the inverted index
         std::set<std::string> results = m_inverted_index.search(search_term);
 
@@ -174,7 +169,6 @@ void Server::add_files_from_directory(const std::string& directory_path) {
     namespace fs = std::filesystem;
 
     try {
-        // Используем recursive_directory_iterator для рекурсивного обхода всех файлов и папок
         for (const auto& entry : fs::recursive_directory_iterator(directory_path)) {
             if (fs::is_regular_file(entry.status())) {
                 std::string file_name = entry.path().filename().string();
@@ -193,14 +187,17 @@ void Server::add_files_from_directory(const std::string& directory_path) {
                     std::cerr << "Не удалось сохранить файл в хранилище: " << file_name << std::endl;
                     continue;
                 }
-                
+
                 m_inverted_index.add_document(file_name, file_content);
 
             }
         }
     } catch (const std::exception& e) {
-        std::cerr << "Ошибка при обработке папки: " << e.what() << std::endl;
+        std::cerr << "Error: " << e.what() << std::endl;
     }
+}
+void Server::clear_files_from_directory(const std::string& directory_path){
+    m_file_storage_manager.clear_path(directory_path);
 }
 
 Server::~Server() {

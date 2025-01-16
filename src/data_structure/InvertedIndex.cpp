@@ -66,5 +66,6 @@ std::set<std::string> InvertedIndex::search(const std::string& term){
         return *result;
     }
     // Return an empty set if the term is not found
+    std::cout << "empty";
     return {};
 }

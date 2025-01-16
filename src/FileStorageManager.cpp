@@ -36,6 +36,41 @@ std::string FileStorageManager::get_content(const std::string& filename) {
     return "";
 }
 
+bool FileStorageManager::clear_path(const std::string& path){
+    std::unique_lock<std::shared_mutex> lock(m_rw_lock);
+    namespace fs = std::filesystem;
+
+    try {
+        fs::path dir_path(path);
+
+        // Проверяем, существует ли путь
+        if (!fs::exists(dir_path)) {
+            std::cerr << "Path does not exist: " << path << std::endl;
+            return false;
+        }
+
+        // Проверяем, является ли путь директорией
+        if (!fs::is_directory(dir_path)) {
+            std::cerr << "Path is not a directory: " << path << std::endl;
+            return false;
+        }
+
+        // Удаляем все содержимое директории
+        for (const auto& entry : fs::directory_iterator(dir_path)) {
+            fs::remove_all(entry);
+        }
+
+        std::cout << "Directory cleared successfully: " << path << std::endl;
+        return true;
+
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Filesystem error: " << e.what() << std::endl;
+        return false;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return false;
+    }
+}
 std::vector<std::string> FileStorageManager::get_all_files() {
     std::shared_lock<std::shared_mutex> lock(m_rw_lock);
     std::vector<std::string> files;
