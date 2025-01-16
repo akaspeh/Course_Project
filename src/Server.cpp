@@ -41,47 +41,93 @@ bool Server::initialize(){
 
 
 void Server::handle_request(SOCKET client_socket) {
-    char buffer[1024];
-    int bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
-    if (bytes_received > 0) {
-        auto request_type_int = static_cast<std::underlying_type_t<RequestType>>(buffer[0]);
-        std::string request_data;
-        if (bytes_received > 1) {
-            request_data = std::string(buffer + 1, bytes_received - 1);
+    try {
+        // Получаем размер данных (4 байта)
+        uint32_t data_length = 0;
+        int bytes_received = recv(client_socket, reinterpret_cast<char*>(&data_length), sizeof(data_length), 0);
+
+        if (bytes_received == sizeof(data_length)) {
+            data_length = ntohl(data_length);
+            std::cout << "INFO: Data length received: " << data_length << std::endl;
+
+            // Выделяем память для получения данных
+            std::unique_ptr<char[]> buffer(new char[data_length + 1]);  // +1 для null-терминатора
+
+// Получаем данные
+            uint32_t total_received = 0;
+            while (total_received < data_length) {
+                int received = recv(client_socket, buffer.get() + total_received, data_length - total_received, 0);
+                if (received <= 0) {
+                    std::cerr << "Error receiving data or client disconnected. Bytes received: " << received << std::endl;
+                    return;
+                }
+                total_received += received;
+                std::cout << "INFO: Received " << received << " bytes, total received: " << total_received << " bytes." << std::endl;
+            }
+
+            buffer[total_received] = '\0';
+
+            std::string request_data(buffer.get(), total_received);  // Конструируем строку из байтового буфера
+
+            std::cout << "Request Data: " << request_data << std::endl;
+
+            if (request_data.empty()) {
+                std::cerr << "Error: Received empty request data." << std::endl;
+                return;
+            }
+            std::cout << "INFO: Received request data: " << request_data << std::endl;
+
+            // Извлекаем тип запроса (первый байт)
+            uint8_t request_type_int = static_cast<uint8_t>(request_data[0]);
+            if (request_type_int < 0 || request_type_int > 2) {
+                std::cerr << "Error: Invalid request type." << std::endl;
+                return;
+            }
+
+            // Создаём объект запроса
+            Request request{static_cast<RequestType>(request_type_int), request_data.substr(1)};
+            std::cout << "INFO: Received request of type " << static_cast<int>(request.type) << std::endl;
+
+            // Обработка запроса
+            Response response;
+            switch (request.type) {
+                case RequestType::FUPLOAD:
+                    response = handle_file_upload(request);
+                    std::cout << "FUPLOAD" << std::endl;
+                    break;
+                case RequestType::FSEARCH:
+                    response = handle_search_request(request);
+                    std::cout << "FSEARCH" << std::endl;
+                    break;
+                case RequestType::FDELETE:
+                    response = handle_delete_file_request(request);
+                    std::cout << "FDELETE" << std::endl;
+                    break;
+                default:
+                    response = {400, std::string("Unknown request type.")};
+                    std::cout << "WARNING: Received unknown request type: " << static_cast<int>(request.type) << std::endl;
+                    break;
+            }
+
+            // Создаём строку ответа
+            std::string response_str = std::to_string(response.status_code) + "\n" + response.data;
+
+            // Отправляем длину ответа
+            uint32_t response_length = response_str.length();
+            send(client_socket, reinterpret_cast<char*>(&response_length), sizeof(response_length), 0);  // Отправляем длину ответа
+            send(client_socket, response_str.c_str(), response_length, 0);  // Отправляем сам ответ
+
+            std::cout << "INFO: Sent response to client." << std::endl;
+        } else {
+            std::cerr << "Error: Failed to receive valid data length or connection issue." << std::endl;
         }
 
-        Request request{static_cast<RequestType>(request_type_int), request_data};
-        std::cout << "INFO: Received request of type " << static_cast<int>(request.type) << std::endl;
+        std::cout << "Client disconnected: " << client_socket << std::endl;
+        closesocket(client_socket);  // Закрываем сокет клиента
 
-        Response response;
-        switch (request.type) {
-            case RequestType::FUPLOAD:
-                response = handle_file_upload(request);
-                std::cout << "FUPLOAD" << std::endl;
-                break;
-            case RequestType::FSEARCH:
-                response = handle_search_request(request);
-                std::cout << "FSEARCH" << std::endl;
-                break;
-            case RequestType::FDELETE:
-                response = handle_delete_file_request(request);
-                std::cout << "FDELETE" << std::endl;
-                break;
-            default:
-                response = {400, "Unknown request type."};
-                std::cout << "WARNING: Received unknown request type: " << static_cast<int>(request.type) << std::endl;
-                break;
-        }
-        std::string response_str = std::to_string(response.status_code) + "\n" + response.data;
-        send(client_socket, response_str.c_str(), response_str.length(), 0);
-        std::cout << "INFO: Sent response to client." << std::endl;
-    } else if (bytes_received == 0) {
-        std::cout << "INFO: Client disconnected." << std::endl;
-    } else {
-        perror("recv failed");
+    } catch (const std::exception& ex) {
+        std::cerr << "Exception while handling request: " << ex.what() << std::endl;
     }
-    std::cout << "Client disconnected: " << client_socket << std::endl;
-    closesocket(client_socket); // Close the client socket
 }
 
 void Server::accept_connections() {
@@ -103,22 +149,29 @@ void Server::accept_connections() {
 
 Response Server::handle_file_upload(const Request &request) {
     try {
-        // Extract filename and content from request data
+        std::cout << "Accepted data: " << request.data << "\n";
+
+        // Проверка наличия разделителя между именем файла и содержимым
         size_t separator_pos = request.data.find('\n');
         if (separator_pos == std::string::npos) {
-            return {400, "Invalid request format. Expected: <filename>\\n<content>"};
+            return {400, std::string("Invalid request format. Expected: <filename>\\n<content>")};
         }
 
         std::string file_name = request.data.substr(0, separator_pos);
         std::string file_content = request.data.substr(separator_pos + 1);
 
+        // Проверка на пустые данные
+        if (file_name.empty() || file_content.empty()) {
+            return {400, std::string("Filename or content is empty.")};
+        }
+
         // Save the file using FileStorageManager
         if (m_file_storage_manager.save_file(file_name, file_content)) {
             // Update the inverted index
             m_inverted_index.add_document(file_name, file_content);
-            return {200, "File uploaded successfully."};
+            return {200, std::string("File uploaded successfully.")};
         } else {
-            return {500, "Failed to save file."};
+            return {500, std::string("Failed to save file.")};
         }
     } catch (const std::exception& ex) {
         return {500, std::string("Server error: ") + ex.what()};
@@ -134,9 +187,9 @@ Response Server::handle_delete_file_request(const Request& request){
             // Optionally, remove the file from the inverted index
             // Assuming the inverted index has a method for removing a document
             m_inverted_index.remove_document(file_name, content); // Ensure this method is implemented
-            return {200, "File deleted successfully."};
+            return {200, std::string("File deleted successfully.")};
         } else {
-            return {404, "File not found."};
+            return {404, std::string("File not found.")};
         }
     } catch (const std::exception& ex) {
         return {500, std::string("Server error: ") + ex.what()};
