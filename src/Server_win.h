@@ -5,8 +5,9 @@
 #ifndef COURSE_PROJECT_SERVER_H
 #define COURSE_PROJECT_SERVER_H
 
-#include <iostream>
+
 #include <winsock2.h>
+#include <iostream>
 #include <vector>
 #include <thread>
 #include <fstream>
@@ -24,7 +25,8 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-class Server {
+class Server_win {
+
 private:
     WSADATA m_wsaData;
     SOCKET m_serverSocket;
@@ -36,16 +38,14 @@ private:
     ThreadPool m_thread_pool;
 
 public:
-    Server(uint32_t port, const std::string& file_path, size_t threads_count = std::thread::hardware_concurrency()-1);
-    ~Server();
+    Server_win(uint32_t port, const std::string& file_path, size_t threads_count = std::thread::hardware_concurrency()-1);
+    ~Server_win();
     bool initialize();
     void handle_request(SOCKET client_socket);
     void accept_connections();
     Response handle_file_upload(const Request& request);
     Response handle_delete_file_request(const Request& request);
     Response handle_search_request(const Request& request);
-    void add_files_from_directory(const std::string& directory_path);
-    void clear_files_from_directory(const std::string& directory_path);
 };
 
 
