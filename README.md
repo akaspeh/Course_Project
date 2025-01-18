@@ -11,6 +11,8 @@
 - **Компилятор C++** (наприклад, GCC, Clang або Microsoft Visual C++).
 - **CMake**
 - **Git**
+- **Docker**
+- **Python 3.12**
 
 ---
 
@@ -35,4 +37,3 @@ pip3 install -r requirements.txt
 # Usage
 python3 main.py
 ```
-### a) Клонування репозиторію (за потреби)
