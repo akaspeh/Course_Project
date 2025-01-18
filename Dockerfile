@@ -25,6 +25,4 @@ RUN cmake -DCMAKE_CXX_COMPILER=g++-11 -DCMAKE_CXX_STANDARD=23 -S . -B build
 
 RUN cmake --build build
 
-EXPOSE 8080
-
-CMD ["./build/Course_project"]
+ENTRYPOINT ["./build/Course_project"]
