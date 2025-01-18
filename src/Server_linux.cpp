@@ -6,7 +6,7 @@
 
 Server_linux::Server_linux(uint32_t port, const std::string& file_path, size_t threads_count) : m_port(port) {
     m_thread_pool.initialize(threads_count);
-    m_file_storage_manager.init_path(file_path);
+    m_scheduler.file_path_add(file_path);
 }
 
 // Деструктор
@@ -154,8 +154,7 @@ Response Server_linux::handle_file_upload(const Request& request) {
             return {400, "Filename or content is empty."};
         }
 
-        if (m_file_storage_manager.save_file(file_name, file_content)) {
-            m_inverted_index.add_document(file_name, file_content);
+        if (m_scheduler.file_upload(file_name,file_content)) {
             return {200, "File uploaded successfully."};
         } else {
             return {500, "Failed to save file."};
@@ -170,12 +169,7 @@ Response Server_linux::handle_delete_file_request(const Request& request) {
     try {
         // The request data contains the file name to delete
         std::string file_name = request.data;
-        // Delete the file using FileStorageManager
-        std::string content = m_file_storage_manager.get_content(file_name);
-        if (m_file_storage_manager.delete_file(file_name)) {
-            // Optionally, remove the file from the inverted index
-            // Assuming the inverted index has a method for removing a document
-            m_inverted_index.remove_document(file_name, content); // Ensure this method is implemented
+        if (m_scheduler.delete_file(file_name)) {
             return {200, std::string("File deleted successfully.")};
         } else {
             return {404, std::string("File not found.")};
@@ -191,7 +185,7 @@ Response Server_linux::handle_search_request(const Request& request) {
         // The request data contains the search term
         std::string search_term = request.data;
         // Search the term in the inverted index
-        std::set<std::string> results = m_inverted_index.search(search_term);
+        std::set<std::string> results = m_scheduler.search(search_term);
 
         if (results.empty()) {
             return {404, "No files found for the given term."};

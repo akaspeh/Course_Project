@@ -16,7 +16,7 @@ private:
     std::string normalize(const std::string& word);
     ThreadSafeHashMap<std::string, std::set<std::string>> m_hash_map;
 public:
-    InvertedIndex() :m_hash_map(8){}
+    explicit InvertedIndex(size_t num_of_threads = 8) :m_hash_map(num_of_threads){}
     void add_document(const std::string& file_name, const std::string& content);
     std::set<std::string> search(const std::string& term);
     void remove_document(const std::string& file_name, const std::string& content);

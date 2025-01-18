@@ -18,10 +18,9 @@
 #include <fstream>
 #include <string>
 #include <filesystem>
+#include "../src/Scheduler.h"
 
 #include "../src/data_structure/ThreadPool.h"
-#include "../src/data_structure/InvertedIndex.h"
-#include "../src/FileStorageManager.h"
 #include "../src/utils/Response.h"
 #include "../src/utils/Request.h"
 
@@ -31,8 +30,7 @@ private:
     struct sockaddr_in m_serverAddr;
     uint32_t m_port;
 
-    FileStorageManager m_file_storage_manager;
-    InvertedIndex m_inverted_index;
+    Scheduler m_scheduler;
     ThreadPool m_thread_pool;
 
 public:

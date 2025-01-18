@@ -28,7 +28,7 @@ docker run --name <назва контейнеру> -p <порт>:<порт> cpp
 ```
 ## 2. Кроки для збірки та запуску Клієнту
 ```bash
-$ cd clients/python
+$ cd python_client_src/python
 python3 -m venv .venv
 source .venv/bin/acitvate
 pip3 install -r requirements.txt

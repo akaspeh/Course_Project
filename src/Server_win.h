@@ -18,8 +18,7 @@
 #include <filesystem>
 
 #include "../src/data_structure/ThreadPool.h"
-#include "../src/data_structure/InvertedIndex.h"
-#include "../src/FileStorageManager.h"
+#include "../src/Scheduler.h"
 #include "../src/utils/Response.h"
 #include "../src/utils/Request.h"
 
@@ -33,12 +32,12 @@ private:
     SOCKADDR_IN m_serverAddr;
     uint32_t m_port;
 
-    FileStorageManager m_file_storage_manager;
-    InvertedIndex m_inverted_index;
+    Scheduler m_scheduler;
     ThreadPool m_thread_pool;
 
 public:
-    Server_win(uint32_t port, const std::string& file_path, size_t threads_count = std::thread::hardware_concurrency()-1);
+    Server_win(uint32_t port, const std::string& file_path,
+        size_t threads_count = std::thread::hardware_concurrency()/2);
     ~Server_win();
     bool initialize();
     void handle_request(SOCKET client_socket);

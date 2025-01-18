@@ -65,7 +65,9 @@ set(SOURCE_FILES
         src/test/TaskQueueTest.cpp
         src/test/TaskQueueTest.h
         src/test/ThreadSafeHashMapTest.cpp
-        src/test/ThreadSafeHashMapTest.h)
+        src/test/ThreadSafeHashMapTest.h
+        src/Scheduler.cpp
+        src/Scheduler.h)
 
 # Добавление исполняемого файла
 

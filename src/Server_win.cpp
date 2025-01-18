@@ -4,7 +4,7 @@
 
 Server_win::Server_win(uint32_t port, const std::string& file_path, size_t threads_count): m_port(port){
     m_thread_pool.initialize(threads_count);
-    m_file_storage_manager.init_path(file_path);
+    m_scheduler.file_path_add(file_path);
 }
 
 bool Server_win::initialize(){
@@ -143,7 +143,6 @@ void Server_win::accept_connections() {
 Response Server_win::handle_file_upload(const Request &request) {
     try {
 
-        // Проверка наличия разделителя между именем файла и содержимым
         size_t separator_pos = request.data.find('\n');
         if (separator_pos == std::string::npos) {
             return {400, std::string("Invalid request format. Expected: <filename>\\n<content>")};
@@ -152,15 +151,10 @@ Response Server_win::handle_file_upload(const Request &request) {
         std::string file_name = request.data.substr(0, separator_pos);
         std::string file_content = request.data.substr(separator_pos + 1);
 
-        // Проверка на пустые данные
         if (file_name.empty() || file_content.empty()) {
             return {400, std::string("Filename or content is empty.")};
         }
-
-        // Save the file using FileStorageManager
-        if (m_file_storage_manager.save_file(file_name, file_content)) {
-            // Update the inverted index
-            m_inverted_index.add_document(file_name, file_content);
+        if (m_scheduler.file_upload(file_name,file_content)) {
             return {200, std::string("File uploaded successfully.")};
         } else {
             return {500, std::string("Failed to save file.")};
@@ -171,14 +165,8 @@ Response Server_win::handle_file_upload(const Request &request) {
 }
 Response Server_win::handle_delete_file_request(const Request& request){
     try {
-        // The request data contains the file name to delete
         std::string file_name = request.data;
-        // Delete the file using FileStorageManager
-        std::string content = m_file_storage_manager.get_content(file_name);
-        if (m_file_storage_manager.delete_file(file_name)) {
-            // Optionally, remove the file from the inverted index
-            // Assuming the inverted index has a method for removing a document
-            m_inverted_index.remove_document(file_name, content); // Ensure this method is implemented
+        if (m_scheduler.delete_file(file_name)) {
             return {200, std::string("File deleted successfully.")};
         } else {
             return {404, std::string("File not found.")};
@@ -192,7 +180,7 @@ Response Server_win::handle_search_request(const Request& request){
         // The request data contains the search term
         std::string search_term = request.data;
         // Search the term in the inverted index
-        std::set<std::string> results = m_inverted_index.search(search_term);
+        std::set<std::string> results = m_scheduler.search(search_term);
 
         if (results.empty()) {
             return {404, "No files found for the given term."};
