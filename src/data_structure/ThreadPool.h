@@ -38,7 +38,6 @@ private:
 
 template <typename task_t, typename... arguments>
 void ThreadPool::add_task(task_t&& task, arguments&&... parameters){
-    ZoneScopedN( "add_task" );
     {
         read_lock _(m_rw_lock);
         if (!working_unsafe()) {

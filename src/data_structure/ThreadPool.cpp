@@ -13,13 +13,10 @@ bool ThreadPool::working_unsafe() const{
 }
 
 void ThreadPool::initialize(const size_t worker_count) {
-    ZoneScoped;
     write_lock _(m_rw_lock);
     if (m_initialized || m_terminated) {
         return;
     }
-
-    // Если ratio_for_request_tasks_part не передан, будет использовано значение по умолчанию (1.0f)
 
     m_workers.reserve(worker_count);
     for (size_t id = 0; id < worker_count; id++) {
@@ -30,7 +27,6 @@ void ThreadPool::initialize(const size_t worker_count) {
 }
 
 void ThreadPool::routine(){
-    ZoneScoped;
     while (true){
         bool task_accquiered = false;
         std::function<void()> task;
@@ -50,15 +46,12 @@ void ThreadPool::routine(){
 }
 
 void ThreadPool::terminate(){
-    ZoneScoped;
     {
         write_lock _(m_rw_lock);
         if (working_unsafe()){
-            ZoneScopedN( "terminated 1" );
             m_terminated = true;
         }
         else{
-            ZoneScopedN( "terminated 2" );
             m_workers.clear();
             m_terminated = false;
             m_initialized = false;
@@ -67,7 +60,6 @@ void ThreadPool::terminate(){
     }
     m_task_waiter.notify_all();
     for (std::thread& worker : m_workers){
-        ZoneScopedN( "terminated 3" );
         worker.join();
     }
     m_workers.clear();

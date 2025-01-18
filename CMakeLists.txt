@@ -8,13 +8,31 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Источники
 set(SOURCE_FILES
         src/main.cpp
-        TracyClient.cpp
         src/Server.cpp
         src/Server.h
         src/data_structure/ThreadPool.cpp
         src/data_structure/ThreadPool.h
         src/data_structure/TaskQueue.h
-        src/data_structure/ThreadSafeHashMap.h src/data_structure/InvertedIndex.cpp src/data_structure/InvertedIndex.h src/FileStorageManager.cpp src/FileStorageManager.h src/utils/Request.h src/utils/Response.h src/utils/RequestType.h src/utils/Document.h)
+        src/data_structure/TaskQueue.tpp
+        src/data_structure/ThreadSafeHashMap.h
+        src/data_structure/ThreadSafeHashMap.tpp
+        src/data_structure/InvertedIndex.cpp
+        src/data_structure/InvertedIndex.h
+        src/FileStorageManager.cpp
+        src/FileStorageManager.h
+        src/utils/Request.h
+        src/utils/Response.h
+        src/utils/RequestType.h
+        src/test/InvertedIndexTest.cpp
+        src/test/InvertedIndexTest.h
+        src/test/ThreadPoolTest.cpp
+        src/test/ThreadPoolTest.h
+        src/test/TestSuite.cpp
+        src/test/TestSuite.h
+        src/test/TaskQueueTest.cpp
+        src/test/TaskQueueTest.h
+        src/test/ThreadSafeHashMapTest.cpp
+        src/test/ThreadSafeHashMapTest.h)
 
 # Опции компиляции и линковки
 add_compile_definitions(TRACY_ENABLE)

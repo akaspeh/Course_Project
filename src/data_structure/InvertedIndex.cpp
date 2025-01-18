@@ -17,7 +17,7 @@ std::vector<std::string> InvertedIndex::tokenize(const std::string& text){
 std::string InvertedIndex::normalize(const std::string& word){
     std::string result;
     for (char c : word) {
-        if (std::isalnum(c)) { // Учитываем только буквы и цифры
+        if (std::isalnum(c)) {
             result += std::tolower(c);
         }
     }

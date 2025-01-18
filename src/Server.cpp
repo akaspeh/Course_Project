@@ -1,6 +1,7 @@
 
 #include "Server.h"
 
+
 Server::Server(uint32_t port, const std::string& file_path, size_t threads_count): m_port(port){
     m_thread_pool.initialize(threads_count);
     m_file_storage_manager.init_path(file_path);
@@ -44,14 +45,13 @@ void Server::handle_request(SOCKET client_socket) {
     try {
         // Получаем размер данных (4 байта)
         uint32_t data_length = 0;
+
         int bytes_received = recv(client_socket, reinterpret_cast<char*>(&data_length), sizeof(data_length), 0);
 
         if (bytes_received == sizeof(data_length)) {
-            data_length = ntohl(data_length);
-            std::cout << "INFO: Data length received: " << data_length << std::endl;
-
             // Выделяем память для получения данных
             std::unique_ptr<char[]> buffer(new char[data_length + 1]);  // +1 для null-терминатора
+            std::cerr << bytes_received << std::endl;
 
 // Получаем данные
             uint32_t total_received = 0;
@@ -62,20 +62,17 @@ void Server::handle_request(SOCKET client_socket) {
                     return;
                 }
                 total_received += received;
-                std::cout << "INFO: Received " << received << " bytes, total received: " << total_received << " bytes." << std::endl;
             }
 
             buffer[total_received] = '\0';
+            std::cerr << buffer << std::endl;
 
             std::string request_data(buffer.get(), total_received);  // Конструируем строку из байтового буфера
-
-            std::cout << "Request Data: " << request_data << std::endl;
 
             if (request_data.empty()) {
                 std::cerr << "Error: Received empty request data." << std::endl;
                 return;
             }
-            std::cout << "INFO: Received request data: " << request_data << std::endl;
 
             // Извлекаем тип запроса (первый байт)
             uint8_t request_type_int = static_cast<uint8_t>(request_data[0]);
@@ -86,7 +83,6 @@ void Server::handle_request(SOCKET client_socket) {
 
             // Создаём объект запроса
             Request request{static_cast<RequestType>(request_type_int), request_data.substr(1)};
-            std::cout << "INFO: Received request of type " << static_cast<int>(request.type) << std::endl;
 
             // Обработка запроса
             Response response;
@@ -114,15 +110,14 @@ void Server::handle_request(SOCKET client_socket) {
 
             // Отправляем длину ответа
             uint32_t response_length = response_str.length();
+            std::cerr << response_length << std::endl;
             send(client_socket, reinterpret_cast<char*>(&response_length), sizeof(response_length), 0);  // Отправляем длину ответа
             send(client_socket, response_str.c_str(), response_length, 0);  // Отправляем сам ответ
+            std::cerr << response_str << std::endl;
 
-            std::cout << "INFO: Sent response to client." << std::endl;
         } else {
             std::cerr << "Error: Failed to receive valid data length or connection issue." << std::endl;
         }
-
-        std::cout << "Client disconnected: " << client_socket << std::endl;
         closesocket(client_socket);  // Закрываем сокет клиента
 
     } catch (const std::exception& ex) {
@@ -131,7 +126,6 @@ void Server::handle_request(SOCKET client_socket) {
 }
 
 void Server::accept_connections() {
-    std::cout << "Starting to accept connections.." << std::endl;
     while (true) {
         SOCKET clientSocket = accept(m_serverSocket, NULL, NULL);
 
@@ -141,7 +135,6 @@ void Server::accept_connections() {
             continue;  // Try to accept the next connection
         }
         // Log when a client is successfully accepted
-        std::cout << "Accepted Client: " << clientSocket << "\n";
         // Handle the client request in a new thread
         m_thread_pool.add_task(std::bind(&Server::handle_request, this, clientSocket));
     }
@@ -149,7 +142,6 @@ void Server::accept_connections() {
 
 Response Server::handle_file_upload(const Request &request) {
     try {
-        std::cout << "Accepted data: " << request.data << "\n";
 
         // Проверка наличия разделителя между именем файла и содержимым
         size_t separator_pos = request.data.find('\n');
