@@ -22,6 +22,7 @@
 
 void test_add_and_search_document();
 void test_remove_document();
+void test_add_and_multi_search_document();
 void test_tokenize_and_normalize_behavior();
 void test_empty_document_behavior();
 void stress_test_inverted_index(const std::string& files_directory, size_t file_amount, size_t thead_amount);

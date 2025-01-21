@@ -5,6 +5,7 @@
 #ifndef COURSE_PROJECT_INVERTEDINDEX_H
 #define COURSE_PROJECT_INVERTEDINDEX_H
 
+#include <map>
 #include <iostream>
 #include <sstream>
 #include <set>
@@ -12,13 +13,14 @@
 
 class InvertedIndex {
 private:
+    std::vector<std::string> splitString(const std::string& str);
     std::vector<std::string> tokenize(const std::string& text);
     std::string normalize(const std::string& word);
     ThreadSafeHashMap<std::string, std::set<std::string>> m_hash_map;
 public:
     explicit InvertedIndex(size_t num_of_threads = 8) :m_hash_map(num_of_threads){}
     void add_document(const std::string& file_name, const std::string& content);
-    std::set<std::string> search(const std::string& term);
+    std::set<std::string> search(const std::string& str);
     void remove_document(const std::string& file_name, const std::string& content);
 };
 

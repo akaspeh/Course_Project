@@ -21,14 +21,10 @@ int main(int argc, char* argv[]) {
     else if (argc == 3){size_t thread_amount = std::stoi(argv[2]);}
     else if (argc == 4){size_t build_index_from_storage = std::stoi(argv[3]);}
     else if (argc > 4){std::cerr << "init default param." << std::endl;}
-#ifdef _WIN32
-    Server_win server(port, "src/storage/", thread_amount, build_index_from_storage);
-#else
-    Server_linux server(port, "src/storage/", thread_amount, build_index_from_storage);
-#endif
     TestSuite suite;
     suite.add_test("test_add_and_search_document", test_add_and_search_document);
     suite.add_test("test_remove_document", test_remove_document);
+    suite.add_test("test_add_and_multi_search_document", test_add_and_multi_search_document);
     suite.add_test("test_tokenize_and_normalize_behavior", test_tokenize_and_normalize_behavior);
     suite.add_test("test_empty_document_behavior", test_empty_document_behavior);
     suite.add_test("test_task_queue_empty", test_task_queue_empty);
@@ -45,6 +41,11 @@ int main(int argc, char* argv[]) {
     suite.add_test("testThreadedInsert", testThreadedInsert);
     suite.add_test("testThreadedPop", testThreadedPop);
     suite.run();
+#ifdef _WIN32
+    Server_win server(port, "src/storage/", thread_amount, build_index_from_storage);
+#else
+    Server_linux server(port, "src/storage/", thread_amount, build_index_from_storage);
+#endif
     // Add tests to the test suite
 
 

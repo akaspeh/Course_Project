@@ -85,6 +85,46 @@ void test_add_and_search_document() {
     ASSERT_EQ(0, result.size());
 }
 
+
+void test_add_and_multi_search_document() {
+    InvertedIndex index;
+
+    // Додаємо документи
+    index.add_document("text1.txt", "dog cat log");
+    index.add_document("text2.txt", "cat dog");
+    index.add_document("text3.txt", "make dog");
+    index.add_document("text4.txt", "text");
+
+    // Пошук по двох термінах "dog" та "cat"
+    auto result = index.search("dog cat");
+    ASSERT_EQ(result.size(), 2); // Очікуємо, що буде 2 документи
+    ASSERT_TRUE(result.find("text1.txt") != result.end());
+    ASSERT_TRUE(result.find("text2.txt") != result.end());
+
+    // Пошук по термінах "dog" та "log"
+    result = index.search("dog log");
+    ASSERT_EQ(result.size(), 1); // Очікуємо, що буде 1 документ
+    ASSERT_TRUE(result.find("text1.txt") != result.end());
+
+    // Пошук по термінах "cat" та "log"
+    result = index.search("cat log");
+    ASSERT_EQ(result.size(), 1); // Очікуємо, що буде 1 документ
+    ASSERT_TRUE(result.find("text1.txt") != result.end());
+
+    // Пошук по термінах "dog" та "make"
+    result = index.search("dog make");
+    ASSERT_EQ(result.size(), 1); // Очікуємо, що буде 1 документ
+    ASSERT_TRUE(result.find("text3.txt") != result.end());
+
+    // Пошук по термінах "dog" та "nonexistent"
+    result = index.search("dog nonexistent");
+    ASSERT_TRUE(result.empty()); // Очікуємо порожній результат, тому що термін "nonexistent" не знайдений
+
+    // Пошук по термінах, яких немає
+    result = index.search("nonexistent nonexistent");
+    ASSERT_TRUE(result.empty()); // Очікуємо порожній результат
+}
+
 void test_remove_document() {
     InvertedIndex index;
 

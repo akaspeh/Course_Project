@@ -5,6 +5,18 @@
 
 #include "InvertedIndex.h"
 
+std::vector<std::string> InvertedIndex::splitString(const std::string& str)
+ {
+        std::vector<std::string> words;
+        std::stringstream ss(str);
+        std::string word;
+
+        while (ss >> word) {
+            words.push_back(word);
+        }
+
+        return words;
+    }
 std::vector<std::string> InvertedIndex::tokenize(const std::string& text){
     std::vector<std::string> tokens;
     std::istringstream stream(text);
@@ -59,14 +71,36 @@ void InvertedIndex::remove_document(const std::string& file_name, const std::str
     }
 }
 
-std::set<std::string> InvertedIndex::search(const std::string& term){
-    auto result = m_hash_map.get(normalize(term));
-    if (result != nullptr) {
-        // Dereference the shared_ptr to get the actual set
-        return *result;
+std::set<std::string> InvertedIndex::search(const std::string& str){
+    std::vector<std::string> terms = splitString(str);
+
+    std::map<std::string, std::map<std::string, int>> document_frequency;
+
+    for (const auto& term : terms) {
+        auto result = m_hash_map.get(normalize(term));
+        if (result != nullptr) {
+            for (const auto& document : *result) {
+                document_frequency[document][term]++;
+            }
+        }
     }
-    // Return an empty set if the term is not found
-    return {};
+
+    std::set<std::string> result_set;
+
+    for (const auto& [document, frequencies] : document_frequency) {
+        bool contains_all_terms = true;
+        for (const auto& term : terms) {
+            if (frequencies.find(term) == frequencies.end()) {
+                contains_all_terms = false;
+                break;
+            }
+        }
+
+        if (contains_all_terms) {
+            result_set.insert(document);
+        }
+    }
+    return result_set;
 }
 
 
