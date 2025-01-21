@@ -42,7 +42,6 @@ class Client:
 
             # Определяем длину данных
             data_length = len(data_with_type)
-            print(data_length)
 
 
             # Отправляем длину данных (4 байта, unsigned int)
@@ -57,7 +56,6 @@ class Client:
                 return
 
             response_length = struct.unpack('I', response_length_data)[0]
-            print(response_length)
             # Получаем сам ответ
             response_data = b""
             while len(response_data) < response_length:
@@ -68,7 +66,6 @@ class Client:
                 response_data += chunk
 
             response = response_data.decode('utf-8')
-            print(f"Received response: {response}")
             return response
         except Exception as e:
             print(f"Error sending request: {e}")
@@ -77,14 +74,14 @@ class Client:
     def upload_file(self, file_name, content):
         request_type = RequestType.FUPLOAD
         data = f"{file_name}\n{content}"
-        self.send_request(request_type, data)
+        return self.send_request(request_type, data)
 
     def delete_file(self, file_name):
         request_type = RequestType.FDELETE
         data = file_name
-        self.send_request(request_type, data)
+        return self.send_request(request_type, data)
 
     def search_file(self, search_term):
         request_type = RequestType.FSEARCH
         data = search_term
-        self.send_request(request_type, data)
+        return self.send_request(request_type, data)

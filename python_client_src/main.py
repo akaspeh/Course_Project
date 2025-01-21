@@ -1,4 +1,3 @@
-# noinspection PyInterpreter
 import string
 import os
 import time
@@ -18,6 +17,13 @@ SERVER_PORT = 8080
 performance_metrics = []
 fail_connections = []
 
+def read_file(file_name):
+    try:
+        with open(file_name, 'r') as file:
+            content = file.read()
+        return content
+    except Exception as e:
+        raise Exception(f"Помилка під час зчитування файлу: {e}")
 def get_all_files(directory):
     """Recursively gets a list of all files in the directory."""
     file_paths = []
@@ -212,48 +218,87 @@ def plot_histogram(results):
     plt.tight_layout()
     plt.show()
 
+
+def main_menu():
+    # Створення екземпляра клієнта
+
+    while True:
+        print("\n=== Меню ===")
+        print("1. Завантажити файл")
+        print("2. Пошук файлу")
+        print("3. Видалити файл")
+        print("4. Стрес-тест")
+        print("5. Зчитати файл і додати")
+        print("6. Вийти")
+
+        choice = input("Оберіть дію: ")
+
+        if choice == '1':
+            client = Client(SERVER_ADDRESS, SERVER_PORT)
+            file_name = input("Введіть ім'я файлу для завантаження: ")
+            content = input("Введіть вміст файлу: ")
+            try:
+                client.connect()
+                print("Результат завантаження:", client.upload_file(file_name, content))
+            except Exception as e:
+                print("Помилка:", e)
+            finally:
+                client.close_connection()
+
+        elif choice == '2':
+            search_term = input("Введіть термін для пошуку: ")
+            try:
+                client = Client(SERVER_ADDRESS, SERVER_PORT)
+                client.connect()
+                print("Результат пошуку:", client.search_file(search_term))
+            except Exception as e:
+                print("Помилка:", e)
+            finally:
+                client.close_connection()
+
+        elif choice == '3':
+
+            file_name = input("Введіть ім'я файлу для видалення: ")
+            try:
+                client = Client(SERVER_ADDRESS, SERVER_PORT)
+                client.connect()
+                print("Результат видалення:", client.delete_file(file_name))
+            except Exception as e:
+                print("Помилка:", e)
+            finally:
+                client.close_connection()
+
+        elif choice == '4':
+            try:
+                num_of_files = int(input("Введіть кількість файлів для створення: "))
+                client_counts = [1, 5, 10, 20, 50, 100, 1000]
+                directory = "./Client/Files"
+                results = run_test(client_counts, directory, num_of_files)
+                plot_results(results)  # Графики для времени выполнения и ошибок соединений
+                plot_total_duration(results)
+                plot_histogram(results)
+                run_test(client_counts, directory, num_of_files)
+            except Exception as e:
+                print("Помилка під час запуску стрес-тесту:", e)
+
+        elif choice == '5':
+            client = Client(SERVER_ADDRESS, SERVER_PORT)
+            file_name = input("Введіть ім'я файлу для завантаження: ")
+            try:
+                client.connect()
+                print("Результат завантаження:", client.upload_file(file_name, read_file(file_name)))
+            except Exception as e:
+                print("Помилка:", e)
+            finally:
+                client.close_connection()
+        elif choice == '6':
+            print("Вихід із програми.")
+            break
+        else:
+            print("Невірний вибір. Спробуйте ще раз.")
+
 if __name__ == "__main__":
-    # Specify test parameters
-    CLIENT_COUNTS = [1, 5, 10, 20, 50]  # Different numbers of clients
-    TEST_DIRECTORY = "./Files"  # Directory containing test files
-
-    # Run the tests and plot results
-    results = run_test(CLIENT_COUNTS, TEST_DIRECTORY, 1000)
-    plot_results(results)  # Графики для времени выполнения и ошибок соединений
-    plot_total_duration(results)
-    plot_histogram(results)
-
-
-
-# if __name__ == "__main__":
-#     server_address = '127.0.0.1'  # Replace with the actual server address
-#     server_port = 18080  # Replace with the actual server port
-#
-#     # Create client instance
-#     client = Client(server_address, server_port)
-#
-#     # Connect to the server
-#
-#     # Test file upload
-#     file_name = "test_file.txt"
-#     content = "This is a test file."
-#     print(f"Uploading file: {file_name}")
-#     client.connect()
-#     print(client.upload_file(file_name, content))
-#     client.close_connection()
-#
-#     # Test file search
-#     search_term = "test"
-#     print(f"Searching for files with term: {search_term}")
-#     client.connect()
-#     print(client.search_file(search_term))
-#     client.close_connection()
-#
-#     # Test file delete
-#     print(f"Deleting file: {file_name}")
-#     client.connect()
-#     print(client.delete_file(file_name))
-#     client.close_connection()
+    main_menu()
 
 
 
