@@ -43,31 +43,31 @@ bool FileStorageManager::clear_path() {
     try {
         fs::path dir_path(m_file_storage_path);
 
-        // Проверка, существует ли путь
+        // is path exist
         if (!fs::exists(dir_path)) {
-            std::cerr << "Директорія не існує: " << m_file_storage_path << std::endl;
+            std::cerr << "do not exist: " << m_file_storage_path << std::endl;
             return false;
         }
 
-        // Проверка, является ли путь директорией
+        // is path directory
         if (!fs::is_directory(dir_path)) {
-            std::cerr << "Це не директорія: " << m_file_storage_path << std::endl;
+            std::cerr << "not a directory directory: " << m_file_storage_path << std::endl;
             return false;
         }
 
-        // Удаляем все содержимое директории
+        // delete directory
         for (const auto& entry : fs::directory_iterator(dir_path)) {
             fs::remove_all(entry.path());
         }
 
-        std::cout << "Директорія очищена успішно: " << m_file_storage_path << std::endl;
+        std::cout << "directory cleared: " << m_file_storage_path << std::endl;
         return true;
 
     } catch (const fs::filesystem_error& e) {
-        std::cerr << "Помилка файлової системи: " << e.what() << std::endl;
+        std::cerr << "File system error: " << e.what() << std::endl;
         return false;
     } catch (const std::exception& e) {
-        std::cerr << "Помилка: " << e.what() << std::endl;
+        std::cerr << "Error: " << e.what() << std::endl;
         return false;
     }
 }

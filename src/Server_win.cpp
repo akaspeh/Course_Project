@@ -50,16 +50,16 @@ bool Server_win::initialize(){
 
 void Server_win::handle_request(SOCKET client_socket) {
     try {
-        // Получаем размер данных (4 байта)
+        // receive data length  (4 byte)
         uint32_t data_length = 0;
 
         int bytes_received = recv(client_socket, reinterpret_cast<char*>(&data_length), sizeof(data_length), 0);
 
         if (bytes_received == sizeof(data_length)) {
-            // Выделяем память для получения данных
-            std::unique_ptr<char[]> buffer(new char[data_length + 1]);  // +1 для null-терминатора
+            // alloc memmory for data
+            std::unique_ptr<char[]> buffer(new char[data_length + 1]);
 
-// Получаем данные
+        // reecive data
             uint32_t total_received = 0;
             while (total_received < data_length) {
                 int received = recv(client_socket, buffer.get() + total_received, data_length - total_received, 0);
@@ -72,24 +72,24 @@ void Server_win::handle_request(SOCKET client_socket) {
 
             buffer[total_received] = '\0';
 
-            std::string request_data(buffer.get(), total_received);  // Конструируем строку из байтового буфера
+            std::string request_data(buffer.get(), total_received);
 
             if (request_data.empty()) {
                 std::cerr << "Error: Received empty request data." << std::endl;
                 return;
             }
 
-            // Извлекаем тип запроса (первый байт)
+            // get request type
             uint8_t request_type_int = static_cast<uint8_t>(request_data[0]);
             if (request_type_int < 0 || request_type_int > 2) {
                 std::cerr << "Error: Invalid request type." << std::endl;
                 return;
             }
 
-            // Создаём объект запроса
+            // create request obj
             Request request{static_cast<RequestType>(request_type_int), request_data.substr(1)};
 
-            // Обработка запроса
+            // process request
             Response response;
             switch (request.type) {
                 case RequestType::FUPLOAD:

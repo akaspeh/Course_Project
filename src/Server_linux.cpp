@@ -16,15 +16,11 @@ Server_linux::Server_linux(uint32_t port, const std::string& file_path, size_t t
     }
 }
 
-// Деструктор
 Server_linux::~Server_linux() {
-    // Закрытие сокета
     close(m_serverSocket);
 }
 
-// Инициализация сервера
 bool Server_linux::initialize() {
-    // Создание сокета
     m_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (m_serverSocket == -1) {
         std::cerr << "Socket creation failed.\n";
@@ -35,14 +31,12 @@ bool Server_linux::initialize() {
     m_serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); // Любой IP
     m_serverAddr.sin_port = htons(m_port); // Устанавливаем порт
 
-    // Привязка сокета к адресу
     if (bind(m_serverSocket, (struct sockaddr*)&m_serverAddr, sizeof(m_serverAddr)) == -1) {
         std::cerr << "Bind failed.\n";
         close(m_serverSocket);
         return false;
     }
 
-    // Ожидание подключений
     if (listen(m_serverSocket, SOMAXCONN) == -1) {
         std::cerr << "Listen failed.\n";
         close(m_serverSocket);
@@ -52,19 +46,15 @@ bool Server_linux::initialize() {
     return true;
 }
 
-// Обработка запроса клиента
 void Server_linux::handle_request(int client_socket) {
     try {
-        // Получаем размер данных (4 байта)
         uint32_t data_length = 0;
 
         int bytes_received = recv(client_socket, reinterpret_cast<char*>(&data_length), sizeof(data_length), 0);
 
         if (bytes_received == sizeof(data_length)) {
-            // Выделяем память для получения данных
-            std::unique_ptr<char[]> buffer(new char[data_length + 1]);  // +1 для null-терминатора
+            std::unique_ptr<char[]> buffer(new char[data_length + 1]);
 
-            // Получаем данные
             uint32_t total_received = 0;
             while (total_received < data_length) {
                 int received = recv(client_socket, buffer.get() + total_received, data_length - total_received, 0);
@@ -84,17 +74,17 @@ void Server_linux::handle_request(int client_socket) {
                 return;
             }
 
-            // Извлекаем тип запроса (первый байт)
+
             uint8_t request_type_int = static_cast<uint8_t>(request_data[0]);
             if (request_type_int < 0 || request_type_int > 2) {
                 std::cerr << "Error: Invalid request type." << std::endl;
                 return;
             }
 
-            // Создаём объект запроса
+
             Request request{static_cast<RequestType>(request_type_int), request_data.substr(1)};
 
-            // Обработка запроса
+
             Response response;
             switch (request.type) {
                 case RequestType::FUPLOAD:
@@ -112,41 +102,40 @@ void Server_linux::handle_request(int client_socket) {
                     break;
             }
 
-            // Создаём строку ответа
+
             std::string response_str = std::to_string(response.status_code) + "\n" + response.data;
 
-            // Отправляем длину ответа
+
             uint32_t response_length = response_str.length();
-            send(client_socket, reinterpret_cast<char*>(&response_length), sizeof(response_length), 0);  // Отправляем длину ответа
-            send(client_socket, response_str.c_str(), response_length, 0);  // Отправляем сам ответ
+            send(client_socket, reinterpret_cast<char*>(&response_length), sizeof(response_length), 0);
+            send(client_socket, response_str.c_str(), response_length, 0);
 
         } else {
             std::cerr << "Error: Failed to receive valid data length or connection issue." << std::endl;
         }
-        close(client_socket);  // Закрываем сокет клиента
+        close(client_socket);
 
     } catch (const std::exception& ex) {
         std::cerr << "Exception while handling request: " << ex.what() << std::endl;
     }
 }
 
-// Ожидание подключений
 void Server_linux::accept_connections() {
     while (true) {
         int client_socket = accept(m_serverSocket, NULL, NULL);
 
-        // Проверка ошибок при принятии подключения
+
         if (client_socket == -1) {
             std::cerr << "Accept failed with error: " << strerror(errno) << "\n";
-            continue;  // Пытаемся принять следующее подключение
+            continue;
         }
 
-        // Обрабатываем запрос клиента в отдельном потоке
+
         m_thread_pool.add_task(std::bind(&Server_linux::handle_request, this, client_socket));
     }
 }
 
-// Обработка запроса на загрузку файла
+
 Response Server_linux::handle_file_upload(const Request& request) {
     try {
         size_t separator_pos = request.data.find('\n');
@@ -171,7 +160,6 @@ Response Server_linux::handle_file_upload(const Request& request) {
     }
 }
 
-// Обработка запроса на удаление файла
 Response Server_linux::handle_delete_file_request(const Request& request) {
     try {
         // The request data contains the file name to delete
@@ -186,7 +174,6 @@ Response Server_linux::handle_delete_file_request(const Request& request) {
     }
 }
 
-// Обработка запроса на поиск
 Response Server_linux::handle_search_request(const Request& request) {
     try {
         // The request data contains the search term
@@ -209,6 +196,3 @@ Response Server_linux::handle_search_request(const Request& request) {
         return {500, std::string("Server error: ") + ex.what()};
     }
 }
-
-
-// Очистка файлов из директории
