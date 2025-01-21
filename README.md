@@ -39,7 +39,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Unix
+Windows
 ```bash 
 $ cd python_client_src/
 python -m venv .venv
