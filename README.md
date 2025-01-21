@@ -28,12 +28,23 @@ cd <імя_папки_проєкту>
 docker build -t cpp-course-project .
 docker run --name <назва контейнеру> -p <порт>:<порт> cpp-course-project <порт> <кількість потоків для средпулу>
 ```
-## 2. Кроки для збірки та запуску Клієнту
-```bash
-$ cd python_client_src/python
-python3 -m venv .venv
+## 2. Кроки для збірки та запуску Клієнту на пітоні
+Unix
+```bash 
+$ cd python_client_src/
+python -m venv .venv
 source .venv/bin/acitvate
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 # Usage
-python3 main.py
+python main.py
+```
+
+Unix
+```bash 
+$ cd python_client_src/
+python -m venv .venv
+.venv/bin/acitvate
+pip install -r requirements.txt
+# Usage
+python main.py
 ```
