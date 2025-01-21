@@ -149,4 +149,5 @@ void ThreadSafeHashMap<key_t, value_t>::emplace(const key_t &key, arguments&&...
     m_process--;
 }
 
+
 #endif // THREAD_SAFE_HASH_MAP_TPP

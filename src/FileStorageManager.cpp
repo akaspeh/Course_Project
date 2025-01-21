@@ -90,3 +90,13 @@ bool FileStorageManager::delete_file(const std::string& filename) {
     }
     return false;
 }
+
+bool FileStorageManager::search_file(const std::string& filename) {
+    std::shared_lock<std::shared_mutex> lock(m_rw_lock);
+    for (const auto& entry : std::experimental::filesystem::directory_iterator(m_file_storage_path)) {
+        if (std::experimental::filesystem::is_regular_file(entry) && entry.path().filename() == filename) {
+            return true; // File found
+        }
+    }
+    return false; // File not found
+}

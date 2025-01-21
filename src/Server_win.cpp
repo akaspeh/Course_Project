@@ -2,9 +2,13 @@
 #include "Server_win.h"
 
 
-Server_win::Server_win(uint32_t port, const std::string& file_path, size_t threads_count): m_port(port){
+Server_win::Server_win(uint32_t port, const std::string& file_path, size_t threads_count,
+    bool build_index_from_storage): m_port(port){
     m_thread_pool.initialize(threads_count);
     m_scheduler.file_path_add(file_path);
+    if (build_index_from_storage) {
+        m_scheduler.build_index();
+    }
 }
 
 bool Server_win::initialize(){
@@ -51,7 +55,6 @@ void Server_win::handle_request(SOCKET client_socket) {
         if (bytes_received == sizeof(data_length)) {
             // Выделяем память для получения данных
             std::unique_ptr<char[]> buffer(new char[data_length + 1]);  // +1 для null-терминатора
-            std::cerr << bytes_received << std::endl;
 
 // Получаем данные
             uint32_t total_received = 0;
@@ -65,7 +68,6 @@ void Server_win::handle_request(SOCKET client_socket) {
             }
 
             buffer[total_received] = '\0';
-            std::cerr << buffer << std::endl;
 
             std::string request_data(buffer.get(), total_received);  // Конструируем строку из байтового буфера
 
@@ -89,15 +91,12 @@ void Server_win::handle_request(SOCKET client_socket) {
             switch (request.type) {
                 case RequestType::FUPLOAD:
                     response = handle_file_upload(request);
-                    std::cout << "FUPLOAD" << std::endl;
                     break;
                 case RequestType::FSEARCH:
                     response = handle_search_request(request);
-                    std::cout << "FSEARCH" << std::endl;
                     break;
                 case RequestType::FDELETE:
                     response = handle_delete_file_request(request);
-                    std::cout << "FDELETE" << std::endl;
                     break;
                 default:
                     response = {400, std::string("Unknown request type.")};
@@ -110,10 +109,8 @@ void Server_win::handle_request(SOCKET client_socket) {
 
             // Отправляем длину ответа
             uint32_t response_length = response_str.length();
-            std::cerr << response_length << std::endl;
             send(client_socket, reinterpret_cast<char*>(&response_length), sizeof(response_length), 0);  // Отправляем длину ответа
             send(client_socket, response_str.c_str(), response_length, 0);  // Отправляем сам ответ
-            std::cerr << response_str << std::endl;
 
         } else {
             std::cerr << "Error: Failed to receive valid data length or connection issue." << std::endl;

@@ -16,6 +16,7 @@
 #include <shared_mutex>
 #include <algorithm>
 #include <atomic>
+#include <iostream>
 
 using read_write_lock = std::shared_mutex;
 using read_lock = std::shared_lock<read_write_lock>;
@@ -44,8 +45,8 @@ public:
     ThreadSafeHashMap(ThreadSafeHashMap&& other) = delete;
     ThreadSafeHashMap& operator=(const ThreadSafeHashMap& rhs) = delete;
     ThreadSafeHashMap& operator=(ThreadSafeHashMap&& rhs) = delete;
-    std::vector<std::list<std::pair<key_t, value_t>>> m_hashBuckets;
 private:
+    std::vector<std::list<std::pair<key_t, value_t>>> m_hashBuckets;
     std::vector<std::shared_mutex> m_locks;
     int16_t m_a, m_b;
     std::atomic<size_t> m_size = 0;

@@ -24,6 +24,7 @@ public:
     std::vector<std::string> get_all_files();
     bool clear_path(const std::string& path);
     bool delete_file(const std::string& filename);
+    bool search_file(const std::string& filename);
 };
 
 

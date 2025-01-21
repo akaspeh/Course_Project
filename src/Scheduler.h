@@ -24,6 +24,7 @@ public:
     bool file_upload(const std::string& file_name, const std::string& contnent);
     bool delete_file(const std::string& file_name);
     std::set<std::string> search(const std::string& search_term);
+    void build_index();
 };
 
 #endif //SCHEDULER_H
