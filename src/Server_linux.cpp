@@ -4,9 +4,16 @@
 
 #include "Server_linux.h"
 
-Server_linux::Server_linux(uint32_t port, const std::string& file_path, size_t threads_count) : m_port(port) {
+Server_linux::Server_linux(uint32_t port, const std::string& file_path, size_t threads_count,
+                           bool build_index_from_storage) : m_port(port) {
     m_thread_pool.initialize(threads_count);
     m_scheduler.file_path_add(file_path);
+    if (build_index_from_storage) {
+        m_scheduler.build_index();
+    }
+    else {
+        m_scheduler.file_path_clear();
+    }
 }
 
 // Деструктор

@@ -21,6 +21,7 @@ public:
         m_thread_pool.initialize(threads_count);
     };
     bool file_path_add(const std::string& file_path);
+    void file_path_clear();
     bool file_upload(const std::string& file_name, const std::string& contnent);
     bool delete_file(const std::string& file_name);
     std::set<std::string> search(const std::string& search_term);

@@ -22,7 +22,7 @@ public:
     bool save_file(const std::string& filename, const std::string& content);
     std::string get_content(const std::string& filename);
     std::vector<std::string> get_all_files();
-    bool clear_path(const std::string& path);
+    bool clear_path();
     bool delete_file(const std::string& filename);
     bool search_file(const std::string& filename);
 };

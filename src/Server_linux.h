@@ -34,7 +34,8 @@ private:
     ThreadPool m_thread_pool;
 
 public:
-    Server_linux(uint32_t port, const std::string& file_path, size_t threads_count = std::thread::hardware_concurrency() - 1);
+    Server_linux(uint32_t port, const std::string& file_path,
+        size_t threads_count = std::thread::hardware_concurrency()/2, bool build_index_from_storage = 0);
     ~Server_linux();
     bool initialize();
     void handle_request(int client_socket);

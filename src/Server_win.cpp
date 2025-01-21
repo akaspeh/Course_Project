@@ -9,6 +9,9 @@ Server_win::Server_win(uint32_t port, const std::string& file_path, size_t threa
     if (build_index_from_storage) {
         m_scheduler.build_index();
     }
+    else {
+        m_scheduler.file_path_clear();
+    }
 }
 
 bool Server_win::initialize(){

@@ -37,7 +37,7 @@ private:
 
 public:
     Server_win(uint32_t port, const std::string& file_path,
-        size_t threads_count = std::thread::hardware_concurrency()/2, bool build_index_from_storage = 1);
+        size_t threads_count = std::thread::hardware_concurrency()/2, bool build_index_from_storage = 0);
     ~Server_win();
     bool initialize();
     void handle_request(SOCKET client_socket);

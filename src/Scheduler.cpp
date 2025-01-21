@@ -57,3 +57,7 @@ std::set<std::string> Scheduler::search(const std::string& search_term){
     std::set<std::string> results = m_inverted_index.search(search_term);
     return results;
 }
+
+void Scheduler::file_path_clear() {
+    m_file_storage_manager.clear_path();
+};
